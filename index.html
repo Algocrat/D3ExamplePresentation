@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+		<meta charset="utf-8">
+		<title>MedCoder</title>
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+		<link rel="stylesheet" href="css/tipsy.css">
+		<style>
+
+			text {
+			pointer-events: none;
+			font: 10px sans-serif;
+			text-anchor: end;
+			font-weight: 900;
+			}
+
+			.node:hover {
+			stroke: #999;
+			stroke-opacity: .6;
+			stroke-width: 6px;
+			}
+
+			.link {
+			stroke: #999;
+			stroke-opacity: .6;
+			}
+
+			.marker {
+			stroke: #999;
+			stroke-opacity: .6;
+			}
+
+		</style>
+</head>
+<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>MedCoder 2.0</h3>
+					<br/>
+					<h5>Rajesh Virkar</h5>
+					<br/>
+
+				</section>
+
+				<section id="sect2">
+					<h4>Recurrent Neural Networks</h4>
+					<svg class="neuralnetwork"></svg>
+				</section>
+			</div>
+		</div>
+
+		<script src="js/reveal.min.js"></script>
+		<script>
+			Reveal.initialize();
+		</script>
+
+		<script src="js/d3.min.js"></script>
+
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.2.min.js"></script> 
+		<script type="text/javascript" src="js/jquery.tipsy.js"></script>
+		<script type="text/javascript">
+
+			//
+			var w = 800, h = 600;      
+			var colors = d3.scale.category20();
+
+			var vis = d3.select("#chart").append("svg:svg")
+				.attr("width", w)
+				.attr("height", h);
+
+			var data = d3.range(20).map(function(i) { 
+				return { i:i, x:Math.random()*w, y:Math.random()*h, r:Math.random()*30 } 
+			});
+
+			vis.selectAll("circle")
+				.data(data)
+			.enter().append("svg:circle")
+				.attr("stroke", "black")
+				.attr("fill", function(d, i) { return colors(i); })
+				.attr("cx", function(d, i) { return d.x; })
+				.attr("cy", function(d, i) { return d.y; })
+				.attr("r", function(d, i) { return d.r; });
+
+			$('svg circle').tipsy({ 
+				gravity: 'w', 
+				html: true, 
+				title: function() {
+				var d = this.__data__, c = colors(d.i);
+				return 'Hi there! My color is <span style="color:' + c + '">' + c + '</span>'; 
+				}
+			});
+
+			//---Code below will show Bubble Charts on the secon Slide -------
+
+			var width = 900,
+				height = 600,
+				nodeSize = 15;
+
+			var color = d3.scale.category20();
+
+			var svg = d3.select(".neuralnetwork")
+			    .attr("width", width)
+			    .attr("height", height)
+			    .attr("class", "rnn");
+
+			d3.json("data.json", function(error, graph) {
+				var nodes = graph.nodes;
+
+				// get network size
+				var netsize = {};
+				nodes.forEach(function (d) {
+				if(d.layer in netsize) {
+					netsize[d.layer] += 1;
+				} else {
+					netsize[d.layer] = 1;
+				}
+				d["lidx"] = netsize[d.layer];
+				});
+
+				// calc distances between nodes
+				var largestLayerSize = Math.max.apply(
+					null, Object.keys(netsize).map(function (i) { return netsize[i]; }))+1;
+
+				var xdist = width / Object.keys(netsize).length,
+					ydist = height / largestLayerSize;
+
+				// create node locations
+				nodes.map(function(d) {
+				var l = netsize[d.layer];
+				var del = largestLayerSize - l;
+				d["x"] = (d.layer - 0.5) * xdist;
+				d["y"] = ((d.lidx - 0.5)+(del*0.5)) * ydist;
+				});
+
+				// autogenerate links
+				var links = [];
+				nodes.map(function(d, i) {
+				for (var n in nodes) {
+					if (d.layer + 1 == nodes[n].layer) {
+					links.push({"source": parseInt(i), "target": parseInt(n), "value": 1, "sourceLabel": nodes[i].label, "targetLabel": nodes[n].label}) }
+				}
+				}).filter(function(d) { return typeof d !== "undefined"; });
+
+				// draw nodes// build the arrow.
+				// build the arrow.
+				svg.append("svg:defs").selectAll("marker")
+					.data(["end"])      // Different link/path types can be defined here
+				.enter().append("svg:marker")    // This section adds in the arrows
+					.attr("id", String)
+					.attr("viewBox", "0 -5 10 10")
+					.attr("refX", 15)
+					.attr("refY", -1.5)
+					.attr("markerWidth", 6)
+					.attr("markerHeight", 6)
+					.attr("orient", "auto")
+					.attr("class", "marker")
+					.append("svg:path")
+					.attr("d", "M0,-5L10,0L0,5")
+					.attr("fill", "#999");;
+
+				// draw links
+				var link = svg.selectAll(".link")
+					.data(links)
+				.enter().append("line")
+					.attr("class", "link")
+					.attr("x1", function(d) { return nodes[d.source].x; })
+					.attr("y1", function(d) { return nodes[d.source].y; })
+					.attr("x2", function(d) { return nodes[d.target].x; })
+					.attr("y2", function(d) { return nodes[d.target].y; })
+					.style("stroke-width", function(d) { return Math.sqrt(d.value); })
+    				.attr("marker-end", "url(#end)"); // add the arrow to the link end
+
+
+				var node = svg.selectAll(".node")
+					.data(nodes)
+				.enter().append("g")
+					.attr("transform", function(d) {
+						return "translate(" + d.x + "," + d.y + ")"; }
+					);
+
+				var circle = node.append("svg:circle")
+					.attr("class", "node")
+					.attr("r", nodeSize)
+					.style("fill", function(d) { return color(d.layer); })
+					.on("mouseover", function(d,i) {
+						d3.select(this).transition()
+							.ease("elastic")
+							.duration("500")
+							.attr("r", 30);
+						//links for which source or traget is hovered		
+						var filtered = link.filter(function(l){
+						return (d.label === l.sourceLabel || d === l.targetLabel);
+						})
+						filtered.style("stroke-width", 6);
+						//select all the data associated with the link
+						var selectedData = [];
+						filtered.each(function(f){
+						selectedData.push(f.source);
+						selectedData.push(f.target);
+						});
+					})
+					.on("mouseout", function(d,i) {
+    					link.style('stroke-width', 1);
+						d3.select(this).transition()
+							.ease("quad")
+							.delay("100")
+							.duration("200")
+							.attr("r", 15);
+					} );
+
+				$('svg circle').tipsy({ 
+					gravity: 'w', 
+					html: true, 
+					title: function() {
+					var d = this.__data__, c = colors(d.i);
+					return ' <h2>' + d.label + ' : '+ d.value + '</h2>';
+					}
+				});
+
+
+				node.append("text")
+				.attr("dx", 12)
+				.attr("dy", ".35em")
+					.text(function(d) { return d.label; });
+			});
+
+			function mouseover() {
+			d3.select(this).select("circle").transition()
+				.duration(750)
+				.attr("r", 30);
+			}
+
+			function mouseout() {
+			d3.select(this).select("circle").transition()
+				.duration(750)
+				.attr("r", 15);
+			}
+
+		</script>
+</body>
+</html>

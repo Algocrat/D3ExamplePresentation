@@ -1,0 +1,23 @@
+{
+    "nodes": [
+      {"label": "Gender", "layer": 1, "value":"M"},
+      {"label": "Age", "layer": 1, "value":"62 Yrs"},
+      {"label": "Tobacco", "layer": 1, "value":"N"},
+      {"label": "Pregnancy", "layer": 1, "value":"N/A"},
+      {"label": "COD1a", "layer": 1, "value":"cardiac | arrest"},
+      {"label": "COD1b", "layer": 1, "value":"multiorgan | failure"},
+      {"label": "COD1c", "layer": 1, "value":"septic | shock"},
+      {"label": "COD1d", "layer": 1, "value":"feculent | pretonitis"},
+      {"label": "Death Manner", "layer": 1, "value":"Natural"},
+      {"label": "Injury Place", "layer": 1, "value":"N/A"},
+      {"label": "Encoder 1", "layer": 2, "value":"Encoded Val1"},
+      {"label": "Encoder 2", "layer": 2, "value":"Encoded Val2"},
+      {"label": "Encoder 3", "layer": 2, "value":"Encoded Val3"},
+      {"label": "Encoder 4", "layer": 2, "value":"Encoded Val4"},
+      {"label": "Decoder 1", "layer": 3, "value":"I469"},
+      {"label": "Decoder 2", "layer": 3, "value":"R688"},
+      {"label": "Decoder 3", "layer": 3, "value":"A419"},
+      {"label": "Decoder 4", "layer": 3, "value":"K659"},
+      {"label": "EAC", "layer": 4, "value":"I469/R688/A419/K659"}
+    ]
+  }
